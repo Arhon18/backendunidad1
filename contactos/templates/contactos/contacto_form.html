@@ -1,0 +1,141 @@
+{% extends 'contactos/base.html' %}
+
+{% block title %}{{ titulo }} — Agenda Personal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card card-custom p-4 p-md-5">
+            <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
+                <div>
+                    <h3 class="fw-bold mb-1 text-dark">{{ titulo }}</h3>
+                    <p class="text-muted mb-0 small">{{ subtitulo }}</p>
+                </div>
+                <a href="{% url 'contacto_list' %}" class="btn btn-outline-secondary btn-sm rounded-3">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+            </div>
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger border-0 shadow-sm rounded-3 mb-4">
+                        {% for error in form.non_field_errors %}
+                            <div><i class="bi bi-exclamation-circle-fill me-1"></i> {{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- Datos Principales -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.nombre.id_for_label }}" class="form-label fw-semibold">Nombre(s) <span class="text-danger">*</span></label>
+                        {{ form.nombre }}
+                        {% if form.nombre.errors %}
+                            <div class="text-danger small mt-1">{{ form.nombre.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.apellido.id_for_label }}" class="form-label fw-semibold">Apellido(s) <span class="text-danger">*</span></label>
+                        {{ form.apellido }}
+                        {% if form.apellido.errors %}
+                            <div class="text-danger small mt-1">{{ form.apellido.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold">Correo Electrónico <span class="text-danger">*</span></label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.telefono.id_for_label }}" class="form-label fw-semibold">Teléfono Principal <span class="text-danger">*</span></label>
+                        {{ form.telefono }}
+                        {% if form.telefono.errors %}
+                            <div class="text-danger small mt-1">{{ form.telefono.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text small">Ejemplo: +56912345678 (8 a 15 dígitos)</div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.categoria.id_for_label }}" class="form-label fw-semibold">Categoría / Grupo</label>
+                        {{ form.categoria }}
+                        {% if form.categoria.errors %}
+                            <div class="text-danger small mt-1">{{ form.categoria.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 d-flex align-items-center mt-md-4 pt-md-2">
+                        <div class="form-check form-switch fs-6">
+                            {{ form.es_favorito }}
+                            <label class="form-check-label fw-semibold" for="{{ form.es_favorito.id_for_label }}">
+                                <i class="bi bi-star-fill text-warning me-1"></i> Marcar como Contacto Favorito
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Datos Laborales y Adicionales -->
+                <h5 class="fw-bold mt-4 pt-3 border-top text-dark mb-3">
+                    <i class="bi bi-briefcase me-1 text-primary"></i> Información Laboral y Fechas
+                </h5>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.empresa.id_for_label }}" class="form-label fw-semibold">Empresa / Organización</label>
+                        {{ form.empresa }}
+                        {% if form.empresa.errors %}
+                            <div class="text-danger small mt-1">{{ form.empresa.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.cargo.id_for_label }}" class="form-label fw-semibold">Cargo / Puesto</label>
+                        {{ form.cargo }}
+                        {% if form.cargo.errors %}
+                            <div class="text-danger small mt-1">{{ form.cargo.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.fecha_nacimiento.id_for_label }}" class="form-label fw-semibold">Fecha de Nacimiento</label>
+                        {{ form.fecha_nacimiento }}
+                        {% if form.fecha_nacimiento.errors %}
+                            <div class="text-danger small mt-1">{{ form.fecha_nacimiento.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.direccion.id_for_label }}" class="form-label fw-semibold">Dirección</label>
+                        {{ form.direccion }}
+                        {% if form.direccion.errors %}
+                            <div class="text-danger small mt-1">{{ form.direccion.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="{{ form.notas.id_for_label }}" class="form-label fw-semibold">Notas Generales</label>
+                    {{ form.notas }}
+                    {% if form.notas.errors %}
+                        <div class="text-danger small mt-1">{{ form.notas.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                    <a href="{% url 'contacto_list' %}" class="btn btn-outline-secondary px-4">Cancelar</a>
+                    <button type="submit" class="btn btn-gradient px-4">
+                        <i class="bi bi-save me-1"></i> Guardar Contacto
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

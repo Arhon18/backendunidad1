@@ -19,11 +19,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-db_host = os.getenv("host")
-db_port = os.getenv("port")
-db_database = os.getenv("database")
-db_user = os.getenv("user")
-db_password = os.getenv("password")
+database_url = os.getenv("DATABASE_URL")
+db_host = os.getenv("host") or os.getenv("DB_HOST")
+db_port = os.getenv("port") or os.getenv("DB_PORT")
+db_database = os.getenv("database") or os.getenv("DB_NAME")
+db_user = os.getenv("user") or os.getenv("DB_USER")
+db_password = os.getenv("password") or os.getenv("DB_PASSWORD")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -61,7 +62,7 @@ INSTALLED_APPS = [
     'crispy_bootstrap5',
     # Aplicaciones del proyecto
     'bienvenida',
-    'inventario',
+    'contactos',
 ]
 
 # Configuración de paquete externo django-crispy-forms con Bootstrap 5
@@ -101,9 +102,19 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
-# Si las variables de PostgreSQL están presentes, se usa PostgreSQL. De lo contrario, se usa SQLite para desarrollo local.
+# Soporte para PostgreSQL (Supabase / Neon / PaaS) mediante DATABASE_URL o variables individuales.
+# Fallback automático a SQLite para desarrollo local cuando no se configuran variables de producción.
 
-if db_database and db_host:
+if database_url:
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=database_url,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
+elif db_database and db_host:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',

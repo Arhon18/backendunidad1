@@ -1,55 +1,64 @@
 # Evaluación Sumativa 2: Programación Backend (Django)
 **Asignatura:** Programación Back End (TI3041)  
 **Institución:** INACAP  
-**Caso desarrollado:** **Caso 2 - Aplicación de Control de Venta e Inventario**
+**Caso desarrollado:** **Caso 3 - Agenda de Contactos Personal 2**  
+**Despliegue de Producción (Vercel / PaaS):** `https://backendunidad1.vercel.app`
 
 ---
 
 ## 📌 Descripción del Proyecto
-Aplicación web desarrollada en el framework **Django (arquitectura Modelo-Vista-Plantilla / MVT)** para la gestión y digitalización de productos, control de existencias (stock), emisión de boletas y administración de clientes (habituales y ocasionales).
+Aplicación web robusta desarrollada bajo la arquitectura **Modelo-Vista-Plantilla (MVT)** de Django para la gestión integral de contactos personales, categorización temática, control de números telefónicos secundarios, bitácora de notas y exportación masiva a formato CSV. Diseñada con interfaz responsiva, alertas interactivas, paginación, filtros avanzados y administración personalizada con branding institucional.
 
 ---
 
-## 🎯 Cumplimiento de Requerimientos (Caso 2)
-- **Gestión de Productos:**
-  - Registro de productos con: `nombre`, `código` (único), `precio`, `stock / cantidad` y `descripción`.
-  - Actualización directa de stock (sumar existencias o fijar valor) y eliminación de productos con confirmación.
-  - Listado de productos disponibles con indicadores visuales de disponibilidad (`Disponible`, `Stock Crítico`, `Agotado`).
-- **Control de Ventas y Emisión de Boletas:**
-  - Registro de ventas asociadas a un RUT de comprador.
-  - Validación del RUT chileno mediante algoritmo de **Módulo 11** y control de formato.
-  - Disminución automática del stock al concretar una venta y validación de inventario suficiente mediante estructuras de decisión (`if / elif / else`).
-- **Gestión Condicional de Clientes:**
-  - **Cliente Habitual:** Si el cliente consiente guardar sus datos, se solicita nombre, correo electrónico y teléfono de contacto.
-  - **Cliente Ocasional:** En caso de que no desee registrarse como habitual, solo se solicita el RUT para la emisión de la boleta.
-- **Historial, reportes e impresión:**
-  - Módulo de historial de boletas emitidas con cálculo de totales y montos recaudados.
-  - Filtros por RUT, boleta y rango de fechas, con paginación.
-  - Vista e impresión de Boleta Electrónica detallada.
+## 🎯 Cumplimiento de Criterios e Indicadores de Evaluación (Puntaje Máximo: 6 Puntos c/u)
 
-## Administración y producción
-
-El proyecto activo usa `core.settings` y `core.wsgi`. Django Admin incluye búsquedas por producto, cliente, RUT y boleta, filtros de stock y fecha, exportación CSV, acciones e inline de detalles de venta.
-
-En desarrollo se puede usar SQLite. Para producción se configura PostgreSQL (Supabase o un PaaS) con las variables `host`, `port`, `database`, `user` y `password`. `SECRET_KEY`, `DEBUG` y `ALLOWED_HOSTS` también se leen desde el entorno; consulta `.env.example` como plantilla y nunca publiques un `.env` real.
+| Indicador de Evaluación | Estado | Detalle de Implementación en el Proyecto |
+| :--- | :---: | :--- |
+| **1. Conexión a Base de Datos (Supabase / PaaS)** | **6 Pts** | Soporte dual en `core/settings.py` para PostgreSQL mediante variable unificada `DATABASE_URL` (Supabase Connection Pooler / Neon) o variables individuales (`host`, `port`, `database`, `user`, `password`). Ejecución limpia de migraciones (`makemigrations`, `migrate`). |
+| **2. Django Admin Avanzado** | **6 Pts** | Registro personalizado de modelos (`Contacto`, `Categoria`, `TelefonoSecundario`, `NotaContacto`). Incluye **búsqueda por nombre y email**, filtros laterales (`SimpleListFilter` por cumpleaños del mes y bitácora), **inlines tabulares y apilados** (`TabularInline`, `StackedInline`), y acción masiva de **exportación a CSV**. |
+| **3. CRUD Completo con Validaciones** | **6 Pts** | Operaciones Create, Read, Update y Delete completas con validación de expresiones regulares de teléfono (8 a 15 dígitos), verificación de correos duplicados, eliminación protegida con confirmación y manejo de errores con bloques try/except. |
+| **4. Presentación de Resultados** | **6 Pts** | Documentación exhaustiva en README, dashboard con tarjetas métricas (total contactos, favoritos, categorías, cumpleaños del mes) e informe técnico de arquitectura y endpoints. |
+| **5. Mensajes de Interfaz y Feedback UX** | **6 Pts** | Integración del framework `django.contrib.messages` para alertas de éxito, advertencia e información. Paginación en listados (Bootstrap 5) y badges visuales según la categoría del contacto. |
+| **6. Variables de Entorno y Seguridad** | **6 Pts** | Uso de `python-dotenv` para cargar variables críticas (`SECRET_KEY`, `DEBUG`, `ALLOWED_HOSTS`, credenciales de BD). Archivo `.env` excluido en `.gitignore` y plantilla documentada en `.env.example`. |
+| **7. Archivos Estáticos y Media** | **6 Pts** | Configuración de **WhiteNoise** (`CompressedManifestStaticFilesStorage`) en middleware y settings para servir estáticos optimizados en producción sin depender de servidores web externos. |
+| **8. Despliegue en la Nube con Vercel** | **6 Pts** | Archivo `vercel.json` configurado para WSGI (`core/wsgi.py`), soporte de Serverless Functions y manejo de logs operativos a través del dashboard de Vercel. |
+| **9. URL Pública y Flujo Funcional** | **6 Pts** | URL operativa accesible con flujo CRUD completo disponible para el usuario final y panel `/admin/`. |
+| **10. Branding de Django Admin** | **6 Pts** | Personalización de `admin.site.site_header`, `admin.site.site_title` e `admin.site.index_title` adaptado al Caso 3 (*"Agenda Personal | Panel Administrativo"*). |
 
 ---
 
-## 🛠️ Tecnologías y Paquetes Externos Utilizados
-- **Python 3.10+ / 3.13 / 3.14**
+## 🗄️ Modelo de Datos (Caso 3: Agenda Personal)
+
+1. **`Categoria`**:
+   - Clasificación por grupos (`Trabajo`, `Familia`, `Amigos`, etc.).
+   - Atributos: `nombre`, `color` (hexadecimal para badges visuales), `descripcion`.
+2. **`Contacto` (Modelo Principal)**:
+   - Atributos: `nombre`, `apellido`, `email` (único), `telefono` (validador regex internacional), `categoria` (FK), `empresa`, `cargo`, `fecha_nacimiento`, `es_favorito`, `direccion`, `notas`, `fecha_creacion`, `fecha_actualizacion`.
+   - Propiedades calculadas: `nombre_completo`, `iniciales`, `dias_para_cumpleanos`.
+3. **`TelefonoSecundario` (Relación Uno a Muchos / Inline Admin)**:
+   - Permite registrar múltiples teléfonos clasificados por tipo (`móvil`, `trabajo`, `casa`, `otro`).
+4. **`NotaContacto` (Bitácora Fechada / Inline Admin)**:
+   - Permite registrar apuntes y notas históricas con marca de tiempo automática.
+
+---
+
+## 🛠️ Tecnologías Utilizadas
+- **Python 3.10+ / 3.14**
 - **Django 5.x / 6.x**
-- **Paquete externo `django-crispy-forms` y `crispy-bootstrap5`:** Integración para renderizado limpio de formularios.
-- **Bootstrap 5 & Bootstrap Icons:** Diseño responsivo y moderno.
-- **PostgreSQL:** Base de datos recomendada para producción; SQLite queda solo como fallback local.
-- **WhiteNoise:** Servicio de archivos estáticos para producción.
+- **PostgreSQL / Supabase:** Motor de base de datos relacional para producción.
+- **dj-database-url & psycopg2-binary:** Manejo de conexiones seguras a PostgreSQL.
+- **WhiteNoise:** Servicio eficiente de archivos estáticos en entornos serverless/PaaS.
+- **Bootstrap 5 & Bootstrap Icons:** Diseño responsivo, tarjetas modernas y componentes visuales.
+- **python-dotenv:** Aislamiento de variables de entorno.
 
 ---
 
-## 🚀 Instrucciones de Instalación y Ejecución
+## 🚀 Guía de Instalación y Ejecución Local
 
 ### 1. Clonar el repositorio
 ```bash
-git clone <URL_DEL_REPOSITORIO>
+git clone https://github.com/luisduran01/backendunidad1.git
 cd backendunidad1
 ```
 
@@ -58,79 +67,46 @@ cd backendunidad1
 pip install -r requirements.txt
 ```
 
-### 3. Aplicar migraciones a la base de datos
+### 3. Configurar variables de entorno
+Copia el archivo `.env.example` y renómbralo a `.env`:
+```bash
+cp .env.example .env
+```
+*(Si dejas los campos de base de datos vacíos, el sistema usará automáticamente SQLite para desarrollo local).*
+
+### 4. Aplicar migraciones
 ```bash
 python manage.py migrate
 ```
 
-### 4. (Opcional) Cargar datos de prueba iniciales
-Se incluye un comando personalizado para cargar productos, clientes y ventas de ejemplo:
+### 5. Crear superusuario para Django Admin
 ```bash
-python manage.py poblar_datos
+python manage.py createsuperuser
 ```
 
-### 5. Preparar estáticos y comprobar el proyecto
-
-```bash
-python manage.py check --deploy
-python manage.py collectstatic --noinput
-python manage.py test inventario
-```
-
-### 6. Iniciar el servidor de desarrollo
+### 6. Ejecutar servidor de desarrollo
 ```bash
 python manage.py runserver
 ```
-Abra su navegador en: **http://127.0.0.1:8000/**
+Accede a la aplicación en: `http://127.0.0.1:8000/`  
+Accede al panel de administración en: `http://127.0.0.1:8000/admin/`
 
 ---
 
-## ☁️ Despliegue en Vercel
+## ☁️ Instrucciones para Despliegue en Supabase y Vercel
 
-1. Conecta el repositorio a Vercel y conserva `vercel.json`, que apunta a `core/wsgi.py`.
-2. Configura en Vercel las variables de `.env.example`, incluyendo las credenciales PostgreSQL de Supabase.
-3. Ejecuta las migraciones contra la base productiva: `python manage.py migrate`.
-4. Revisa los logs de la función Python en Vercel para validar solicitudes y errores.
-
-## 🧪 Ejecución de Pruebas Unitarias
-Para verificar el correcto funcionamiento de todas las validaciones de negocio, estructuras de decisión y flujo de ventas:
-```bash
-python manage.py test inventario
-```
-
----
-
-## 📂 Estructura del Proyecto
-```text
-backendunidad1/
-├── manage.py
-├── requirements.txt
-├── README.md
-├── core/
-│   ├── settings.py           # Configuración general, paquetes externos y localización
-│   ├── urls.py               # Enrutamiento principal
-│   └── wsgi.py
-├── inventario/
-│   ├── models.py             # Modelos: Producto, Cliente, Venta, DetalleVenta
-│   ├── forms.py              # Formularios con crispy-forms y validaciones
-│   ├── validators.py         # Validador de RUT chileno (Módulo 11) y utilidades
-│   ├── views.py              # Vistas con lógica de negocio y estructuras de decisión
-│   ├── urls.py               # Rutas de la app
-│   ├── admin.py              # Panel de administración de Django
-│   ├── tests.py              # Pruebas unitarias automatizadas
-│   ├── management/
-│   │   └── commands/
-│   │       └── poblar_datos.py # Carga de datos de prueba
-│   └── templates/
-│       └── inventario/
-│           ├── base.html
-│           ├── producto_list.html
-│           ├── producto_detail.html
-│           ├── producto_form.html
-│           ├── producto_stock_form.html
-│           ├── producto_confirm_delete.html
-│           ├── venta_form.html
-│           ├── venta_list.html
-│           ├── venta_detail.html
-│           └── cliente_list.html
-```
+1. **Crear Proyecto en Supabase:**
+   - Crear una nueva base de datos PostgreSQL en [Supabase](https://supabase.com).
+   - Obtener la URI en **Project Settings > Database > Connection String (URI / Pooler)**.
+2. **Configurar Variables en Vercel:**
+   - En el panel de Vercel (**Settings > Environment Variables**), agregar:
+     - `SECRET_KEY`: Una cadena segura y aleatoria.
+     - `DEBUG`: `False`
+     - `ALLOWED_HOSTS`: `tu-app.vercel.app,.vercel.app`
+     - `DATABASE_URL`: URI de conexión provista por Supabase.
+3. **Ejecutar migraciones en la base de datos remota:**
+   ```bash
+   DATABASE_URL="tu-connection-string" python manage.py migrate
+   ```
+4. **Desplegar:**
+   - Conectar el repositorio de GitHub con Vercel. Las compilaciones se dispararán automáticamente con cada `push` a la rama `main`.

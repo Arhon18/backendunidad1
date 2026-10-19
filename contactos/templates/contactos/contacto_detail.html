@@ -1,0 +1,217 @@
+{% extends 'contactos/base.html' %}
+
+{% block title %}{{ contacto.nombre_completo }} — Agenda Personal{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Columna Izquierda: Ficha del Contacto -->
+    <div class="col-lg-5">
+        <div class="card card-custom p-4 text-center mb-4">
+            <div class="avatar-circle avatar-lg mx-auto mb-3 shadow-sm">
+                {{ contacto.iniciales }}
+            </div>
+            <h3 class="fw-bold mb-1 text-dark">{{ contacto.nombre_completo }}</h3>
+            
+            {% if contacto.categoria %}
+                <div class="mb-2">
+                    <span class="badge rounded-pill px-3 py-2" style="background-color: {{ contacto.categoria.color|default:'#6366f1' }};">
+                        <i class="bi bi-tag-fill me-1"></i> {{ contacto.categoria.nombre }}
+                    </span>
+                </div>
+            {% endif %}
+
+            {% if contacto.cargo or contacto.empresa %}
+                <p class="text-muted mb-3">
+                    {% if contacto.cargo %}{{ contacto.cargo }}{% endif %}
+                    {% if contacto.cargo and contacto.empresa %} en {% endif %}
+                    {% if contacto.empresa %}<strong class="text-dark">{{ contacto.empresa }}</strong>{% endif %}
+                </p>
+            {% endif %}
+
+            <div class="d-flex justify-content-center gap-2 mb-3">
+                <a href="tel:{{ contacto.telefono }}" class="btn btn-outline-success btn-sm rounded-pill px-3">
+                    <i class="bi bi-telephone-fill me-1"></i> Llamar
+                </a>
+                <a href="mailto:{{ contacto.email }}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                    <i class="bi bi-envelope-fill me-1"></i> Correo
+                </a>
+                <a href="{% url 'contacto_toggle_favorito' contacto.id %}" class="btn btn-outline-warning btn-sm rounded-pill px-3" title="Favorito">
+                    {% if contacto.es_favorito %}
+                        <i class="bi bi-star-fill text-warning"></i>
+                    {% else %}
+                        <i class="bi bi-star text-muted"></i>
+                    {% endif %}
+                </a>
+            </div>
+
+            <div class="d-flex justify-content-center gap-2 pt-3 border-top">
+                <a href="{% url 'contacto_update' contacto.id %}" class="btn btn-light border btn-sm">
+                    <i class="bi bi-pencil me-1"></i> Editar
+                </a>
+                <a href="{% url 'contacto_delete' contacto.id %}" class="btn btn-outline-danger btn-sm">
+                    <i class="bi bi-trash3 me-1"></i> Eliminar
+                </a>
+            </div>
+        </div>
+
+        <!-- Información Detallada -->
+        <div class="card card-custom p-4">
+            <h5 class="fw-bold text-dark mb-3">
+                <i class="bi bi-person-vcard text-primary me-2"></i> Datos de Contacto
+            </h5>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                    <span class="text-muted"><i class="bi bi-telephone me-2"></i> Teléfono:</span>
+                    <span class="fw-semibold text-dark">{{ contacto.telefono }}</span>
+                </li>
+                <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                    <span class="text-muted"><i class="bi bi-envelope me-2"></i> Correo:</span>
+                    <span class="fw-semibold text-dark text-break">{{ contacto.email }}</span>
+                </li>
+                {% if contacto.direccion %}
+                    <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                        <span class="text-muted"><i class="bi bi-geo-alt me-2"></i> Dirección:</span>
+                        <span class="fw-semibold text-dark text-end">{{ contacto.direccion }}</span>
+                    </li>
+                {% endif %}
+                {% if contacto.fecha_nacimiento %}
+                    <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                        <span class="text-muted"><i class="bi bi-cake2 me-2"></i> Cumpleaños:</span>
+                        <span class="fw-semibold text-dark">
+                            {{ contacto.fecha_nacimiento|date:"d \d\e F" }} 
+                            <small class="text-muted">({{ contacto.dias_para_cumpleanos }} días restantes)</small>
+                        </span>
+                    </li>
+                {% endif %}
+                <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                    <span class="text-muted"><i class="bi bi-clock-history me-2"></i> Registrado:</span>
+                    <span class="small text-muted">{{ contacto.fecha_creacion|date:"d/m/Y H:i" }}</span>
+                </li>
+            </ul>
+
+            {% if contacto.notas %}
+                <div class="mt-3 pt-3 border-top">
+                    <span class="text-muted small fw-semibold text-uppercase">Notas Generales:</span>
+                    <p class="text-secondary small mt-1 mb-0">{{ contacto.notas }}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Columna Derecha: Teléfonos Adicionales y Bitácora de Notas -->
+    <div class="col-lg-7">
+        <!-- Sección de Teléfonos Secundarios -->
+        <div class="card card-custom p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-dark mb-0">
+                    <i class="bi bi-phone-vibrate text-success me-2"></i> Teléfonos Adicionales
+                </h5>
+                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#collapseTelefono">
+                    <i class="bi bi-plus-lg"></i> Agregar Número
+                </button>
+            </div>
+
+            <!-- Formulario colapsable para nuevo teléfono -->
+            <div class="collapse mb-3" id="collapseTelefono">
+                <div class="p-3 bg-light rounded-3 border">
+                    <form method="post" action="{% url 'contacto_add_telefono' contacto.id %}">
+                        {% csrf_token %}
+                        <div class="row g-2 align-items-end">
+                            <div class="col-md-5">
+                                <label class="form-label small fw-semibold">Tipo</label>
+                                {{ telefono_form.tipo }}
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label small fw-semibold">Número</label>
+                                {{ telefono_form.numero }}
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary btn-sm w-100">Guardar</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Listado de Teléfonos Secundarios -->
+            {% if contacto.telefonos_secundarios.all %}
+                <div class="list-group list-group-flush">
+                    {% for tel in contacto.telefonos_secundarios.all %}
+                        <div class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-secondary-subtle text-secondary me-2">{{ tel.get_tipo_display }}</span>
+                                <span class="fw-semibold text-dark">{{ tel.numero }}</span>
+                            </div>
+                            <form method="post" action="{% url 'contacto_delete_telefono' contacto.id tel.id %}" onsubmit="return confirm('¿Eliminar este número?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-link text-danger p-0 text-decoration-none">
+                                    <i class="bi bi-x-circle"></i>
+                                </button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted small mb-0">No hay teléfonos adicionales registrados.</p>
+            {% endif %}
+        </div>
+
+        <!-- Sección de Bitácora de Notas -->
+        <div class="card card-custom p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-dark mb-0">
+                    <i class="bi bi-journal-text text-info me-2"></i> Bitácora y Anotaciones
+                </h5>
+                <button class="btn btn-sm btn-outline-info" data-bs-toggle="collapse" data-bs-target="#collapseNota">
+                    <i class="bi bi-plus-lg"></i> Nueva Nota
+                </button>
+            </div>
+
+            <!-- Formulario colapsable para nueva nota -->
+            <div class="collapse mb-3" id="collapseNota">
+                <div class="p-3 bg-light rounded-3 border">
+                    <form method="post" action="{% url 'contacto_add_nota' contacto.id %}">
+                        {% csrf_token %}
+                        <div class="mb-2">
+                            <label class="form-label small fw-semibold">Asunto / Título</label>
+                            {{ nota_form.titulo }}
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small fw-semibold">Detalle</label>
+                            {{ nota_form.detalle }}
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-info text-white btn-sm px-3">Guardar Nota</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Listado de Notas -->
+            {% if contacto.bitacora_notas.all %}
+                <div class="d-flex flex-column gap-3">
+                    {% for nota in contacto.bitacora_notas.all %}
+                        <div class="p-3 border rounded-3 bg-white shadow-sm position-relative">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <h6 class="fw-bold text-dark mb-0">{{ nota.titulo }}</h6>
+                                <span class="badge bg-light text-muted border small">{{ nota.fecha_registro|date:"d/m/Y H:i" }}</span>
+                            </div>
+                            <p class="text-secondary small mb-2">{{ nota.detalle }}</p>
+                            <div class="text-end">
+                                <form method="post" action="{% url 'contacto_delete_nota' contacto.id nota.id %}" onsubmit="return confirm('¿Eliminar esta nota?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-link text-danger p-0 small text-decoration-none">
+                                        <i class="bi bi-trash3"></i> Eliminar
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted small mb-0">No hay notas registradas en la bitácora de este contacto.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends 'contactos/base.html' %}
+
+{% block title %}Categorías — Agenda Personal{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Columna Izquierda: Listado de Categorías -->
+    <div class="col-lg-7">
+        <div class="card card-custom p-4">
+            <h4 class="fw-bold text-dark mb-3">
+                <i class="bi bi-tags-fill text-primary me-2"></i> Categorías Registradas
+            </h4>
+            <p class="text-muted small mb-4">Organiza tus contactos en grupos temáticos para filtrarlos fácilmente.</p>
+
+            {% if categorias %}
+                <div class="list-group list-group-flush">
+                    {% for cat in categorias %}
+                        <div class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="rounded-circle d-inline-block shadow-sm" style="width: 20px; height: 20px; background-color: {{ cat.color }};"></span>
+                                <div>
+                                    <h6 class="fw-bold text-dark mb-0">{{ cat.nombre }}</h6>
+                                    {% if cat.descripcion %}
+                                        <small class="text-muted">{{ cat.descripcion }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="badge bg-light text-dark border">
+                                    {{ cat.num_contactos }} contacto{{ cat.num_contactos|pluralize }}
+                                </span>
+                                <a href="{% url 'contacto_list' %}?categoria={{ cat.id }}" class="btn btn-sm btn-outline-primary" title="Ver contactos de esta categoría">
+                                    <i class="bi bi-funnel"></i>
+                                </a>
+                                {% if cat.num_contactos == 0 %}
+                                    <form method="post" action="{% url 'categoria_delete' cat.id %}" onsubmit="return confirm('¿Eliminar esta categoría?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted">Aún no hay categorías creadas. ¡Crea la primera en el formulario de al lado!</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Columna Derecha: Formulario para Nueva Categoría -->
+    <div class="col-lg-5">
+        <div class="card card-custom p-4">
+            <h5 class="fw-bold text-dark mb-3">
+                <i class="bi bi-plus-circle text-success me-2"></i> Crear Nueva Categoría
+            </h5>
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Nombre de la Categoría</label>
+                    {{ form.nombre }}
+                    {% if form.nombre.errors %}
+                        <div class="text-danger small mt-1">{{ form.nombre.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Color Identificador</label>
+                    {{ form.color }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Descripción Opcional</label>
+                    {{ form.descripcion }}
+                </div>
+                <button type="submit" class="btn btn-gradient w-100">
+                    <i class="bi bi-save me-1"></i> Guardar Categoría
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

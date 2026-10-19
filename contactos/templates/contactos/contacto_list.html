@@ -1,0 +1,232 @@
+{% extends 'contactos/base.html' %}
+
+{% block title %}Contactos — Agenda Personal{% endblock %}
+
+{% block content %}
+<!-- Tarjetas de Estadísticas / Resumen Superior -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+        <div class="card card-custom p-3 border-start border-primary border-4">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-semibold text-uppercase">Total Contactos</span>
+                    <h3 class="fw-bold mb-0 text-dark">{{ total_contactos }}</h3>
+                </div>
+                <div class="avatar-circle bg-primary-subtle text-primary fs-4">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card card-custom p-3 border-start border-warning border-4">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-semibold text-uppercase">Favoritos</span>
+                    <h3 class="fw-bold mb-0 text-dark">{{ total_favoritos }}</h3>
+                </div>
+                <div class="avatar-circle bg-warning-subtle text-warning fs-4">
+                    <i class="bi bi-star-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card card-custom p-3 border-start border-info border-4">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-semibold text-uppercase">Categorías</span>
+                    <h3 class="fw-bold mb-0 text-dark">{{ total_categorias }}</h3>
+                </div>
+                <div class="avatar-circle bg-info-subtle text-info fs-4">
+                    <i class="bi bi-tags-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card card-custom p-3 border-start border-danger border-4">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-semibold text-uppercase">Cumpleaños Mes</span>
+                    <h3 class="fw-bold mb-0 text-dark">{{ cumpleaneros_mes }}</h3>
+                </div>
+                <div class="avatar-circle bg-danger-subtle text-danger fs-4">
+                    <i class="bi bi-cake2-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Barra de Filtros, Búsqueda y Acciones -->
+<div class="card card-custom p-3 mb-4">
+    <form method="get" class="row g-2 align-items-center">
+        <!-- Input de Búsqueda -->
+        <div class="col-lg-4 col-md-6">
+            <div class="input-group">
+                <span class="input-group-text bg-light border-end-0 text-muted">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input type="text" name="q" value="{{ query }}" class="form-control border-start-0 ps-0" placeholder="Buscar por nombre, email, fono...">
+                {% if query %}
+                    <a href="{% url 'contacto_list' %}" class="btn btn-outline-secondary" title="Limpiar"><i class="bi bi-x-lg"></i></a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Filtro por Categoría -->
+        <div class="col-lg-3 col-md-6">
+            <select name="categoria" class="form-select" onchange="this.form.submit()">
+                <option value="">Todas las categorías</option>
+                {% for cat in categorias %}
+                    <option value="{{ cat.id }}" {% if categoria_id == cat.id|stringformat:"i" %}selected{% endif %}>
+                        {{ cat.nombre }} ({{ cat.num_contactos }})
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Filtro Orden -->
+        <div class="col-lg-2 col-md-4">
+            <select name="orden" class="form-select" onchange="this.form.submit()">
+                <option value="nombre" {% if orden == 'nombre' %}selected{% endif %}>Por Nombre</option>
+                <option value="apellido" {% if orden == 'apellido' %}selected{% endif %}>Por Apellido</option>
+                <option value="recientes" {% if orden == 'recientes' %}selected{% endif %}>Más recientes</option>
+            </select>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="col-lg-3 col-md-8 d-flex gap-2 justify-content-md-end">
+            <button type="submit" class="btn btn-outline-primary flex-grow-1 flex-md-grow-0">
+                <i class="bi bi-funnel-fill"></i> Filtrar
+            </button>
+            <a href="{% url 'contacto_exportar_csv' %}?q={{ query }}&categoria={{ categoria_id }}&favoritos={{ solo_favoritos }}" class="btn btn-outline-success" title="Exportar listado actual a CSV">
+                <i class="bi bi-file-earmark-spreadsheet-fill"></i> CSV
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Listado de Contactos en Grid Responsive -->
+{% if contactos %}
+    <div class="row g-3 mb-4">
+        {% for contacto in contactos %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card card-custom h-100 p-3 position-relative">
+                    <!-- Botón rápido de favorito -->
+                    <a href="{% url 'contacto_toggle_favorito' contacto.id %}" class="position-absolute top-0 end-0 m-3 fs-5 text-decoration-none" title="{% if contacto.es_favorito %}Quitar de favoritos{% else %}Marcar como favorito{% endif %}">
+                        {% if contacto.es_favorito %}
+                            <i class="bi bi-star-fill text-warning"></i>
+                        {% else %}
+                            <i class="bi bi-star text-muted"></i>
+                        {% endif %}
+                    </a>
+
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="avatar-circle">
+                            {{ contacto.iniciales }}
+                        </div>
+                        <div class="overflow-hidden pe-4">
+                            <h5 class="fw-bold mb-0 text-truncate">
+                                <a href="{% url 'contacto_detail' contacto.id %}" class="text-dark text-decoration-none">
+                                    {{ contacto.nombre_completo }}
+                                </a>
+                            </h5>
+                            {% if contacto.categoria %}
+                                <span class="badge rounded-pill mt-1" style="background-color: {{ contacto.categoria.color|default:'#6366f1' }};">
+                                    {{ contacto.categoria.nombre }}
+                                </span>
+                            {% else %}
+                                <span class="badge bg-light text-muted border rounded-pill mt-1">Sin categoría</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="text-muted small mb-3">
+                        <div class="d-flex align-items-center gap-2 mb-1 text-truncate">
+                            <i class="bi bi-envelope text-primary"></i>
+                            <a href="mailto:{{ contacto.email }}" class="text-decoration-none text-muted text-truncate">{{ contacto.email }}</a>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <i class="bi bi-telephone text-success"></i>
+                            <a href="tel:{{ contacto.telefono }}" class="text-decoration-none text-dark fw-semibold">{{ contacto.telefono }}</a>
+                        </div>
+                        {% if contacto.empresa %}
+                            <div class="d-flex align-items-center gap-2 text-truncate">
+                                <i class="bi bi-briefcase text-secondary"></i>
+                                <span class="text-truncate">{{ contacto.empresa }}{% if contacto.cargo %} — {{ contacto.cargo }}{% endif %}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mt-auto pt-2 border-top d-flex justify-content-between align-items-center">
+                        <a href="{% url 'contacto_detail' contacto.id %}" class="btn btn-sm btn-light border text-primary fw-semibold">
+                            <i class="bi bi-eye"></i> Ver Ficha
+                        </a>
+                        <div class="btn-group">
+                            <a href="{% url 'contacto_update' contacto.id %}" class="btn btn-sm btn-light border" title="Editar contacto">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'contacto_delete' contacto.id %}" class="btn btn-sm btn-light border text-danger" title="Eliminar contacto">
+                                <i class="bi bi-trash3"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Paginación -->
+    {% if contactos.has_other_pages %}
+        <nav aria-label="Navegación de contactos" class="d-flex justify-content-center">
+            <ul class="pagination pagination-md shadow-sm">
+                {% if contactos.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1&q={{ query }}&categoria={{ categoria_id }}&favoritos={{ solo_favoritos }}&orden={{ orden }}">&laquo; Primera</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ contactos.previous_page_number }}&q={{ query }}&categoria={{ categoria_id }}&favoritos={{ solo_favoritos }}&orden={{ orden }}">Anterior</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+                {% endif %}
+
+                <li class="page-item active">
+                    <span class="page-link">Página {{ contactos.number }} de {{ contactos.paginator.num_pages }}</span>
+                </li>
+
+                {% if contactos.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ contactos.next_page_number }}&q={{ query }}&categoria={{ categoria_id }}&favoritos={{ solo_favoritos }}&orden={{ orden }}">Siguiente</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ contactos.paginator.num_pages }}&q={{ query }}&categoria={{ categoria_id }}&favoritos={{ solo_favoritos }}&orden={{ orden }}">Última &raquo;</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+
+{% else %}
+    <div class="card card-custom p-5 text-center my-4">
+        <div class="mb-3">
+            <i class="bi bi-people text-muted" style="font-size: 3.5rem;"></i>
+        </div>
+        <h4 class="fw-bold text-dark">No se encontraron contactos</h4>
+        <p class="text-muted mb-4">No hay contactos que coincidan con los criterios de búsqueda o aún no has registrado ninguno.</p>
+        <div>
+            <a href="{% url 'contacto_create' %}" class="btn btn-gradient me-2">
+                <i class="bi bi-person-plus-fill me-1"></i> Agregar Contacto
+            </a>
+            {% if query or categoria_id or solo_favoritos %}
+                <a href="{% url 'contacto_list' %}" class="btn btn-outline-secondary">Limpiar filtros</a>
+            {% endif %}
+        </div>
+    </div>
+{% endif %}
+
+{% endblock %}
